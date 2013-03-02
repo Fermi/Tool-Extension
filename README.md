@@ -1,3 +1,3 @@
-Welcome to PHPWebFrame
+Welcome to Project Tool-Extention.
 ----------------------
-Union of Template Engine,Frontend Components that can make web pages shown to people by PHP.
+Extention means sth written by different programming languages that can corp w/ main programming languages.
