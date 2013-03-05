@@ -1,3 +1,3 @@
-Welcome to Project Tool-Extention.
+Welcome to Project Tool-Extension.
 ----------------------
-Extention means sth written by different programming languages that can corp w/ main programming languages.
+Extension means sth written by different programming languages that can corp w/ main programming languages.
