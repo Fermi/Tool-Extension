@@ -34,33 +34,36 @@ zend_module_entry template_parser_module_entry = {
 PHP_FUNCTION(template_parser_pause){
     zval *object = NULL;
     char *template = NULL;
+    char *result_string = NULL;
     zval *param = NULL;
     int template_length = 0;
     zend_bool openTest = 0;
     int process_start = 0;
-
+    //Fetch parameters.
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object,&template,&template_length,&param) == FAILURE){
         return ;
     }
-   
+    //Loop the whole template string.Search 4 <?php & keywords in it & call methods.
     for (process_start = 0;process_start <= template_length;){
         switch(){
             
         }
     }
+    //Return processed template string and give it back to PHP.
+    RETURN_STRING(result_string,0);
 
 }
 
-static int template_parser_extract_param(){
+static int template_parser_extract_param(zval *param){
     
 }
-static int template_parser_add_return_string(){
+static int template_parser_add_return_string(char *result_string,char *processed_string){
     
 }
-static int template_parser_find_token(){
+static int template_parser_find_token(char *template,int start){
     
 }
-static int template_parser_get_process_start(){
+static int template_parser_get_process_start(char *template,int start){
     
 }
 static inline int template_parser_process_token_if(){
