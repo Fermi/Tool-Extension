@@ -72,10 +72,19 @@ static inline int template_parser_process_token_for(){
 static inline int template_parser_process_token_switch(){
     
 }
+static inline int template_parser_process_token_do_while(){
+    
+}
 static inline int template_parser_process_token_while(){
     
 }
 static inline int template_parser_process_token_foreach(){
+    
+}
+static inline int template_parser_process_token_user_call(){
+    
+}
+static inline int template_parser_execute_token_string(){
     
 }
 
