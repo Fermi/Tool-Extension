@@ -38,78 +38,17 @@ PHP_FUNCTION(template_parser_pause){
     zval *param = NULL;
     int template_length = 0;
     zend_bool openTest = 0;
-    int process_start = 0;
 
     //Fetch parameters.
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object,&template,&template_length,&param) == FAILURE){
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object,&template,&template_length,&param,&openTest) == FAILURE){
         return ;
     }
-    //Loop the whole template string.Search 4 <?php & keywords in it & call methods.
-    for (process_start = template_parser_find_tag(template,"START",process_start);process_start <= template_length;){
-        switch(template_parser_find_token(template,process_start)){
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
-            case 6:
-                break;
-            case 7:
-                break;
-            default:
-                break;
-        }
-    }
+
     //Return processed template string and give it back to PHP.
     RETURN_STRING(result_string,0);
 
 }
-
 static int template_parser_extract_param(zval *param){
-    
-}
-static int template_parser_form_return_string(char *result_string,char *processed_string){
-    
-}
-static int template_parser_find_tag(char *template,char *type,int start){
-    
-}
-static int template_parser_find_token(char *template,int start){
-    
-}
-static inline int template_parser_find_start_tag(char *template,int start){
-    
-}
-static inline int template_parser_find_end_tag(char *template,int start){
-    
-}
-static inline int template_parser_execute_if(char *source,char *dest){
-    
-}
-static inline int template_parser_execute_for(char *source,char *dest){
-    
-}
-static inline int template_parser_execute_switch(char *source,char *dest){
-    
-}
-static inline int template_parser_execute_do_while(char *source,char *dest){
-    
-}
-static inline int template_parser_execute_while(char *source,char *dest){
-    
-}
-static inline int template_parser_execute_foreach(char *source,char *dest){
-    
-}
-static inline int template_parser_execute_user_call(char *source,char *dest){
-    
-}
-static inline int template_parser_execute(char *source,char *dest,char *type){
     
 }
 
