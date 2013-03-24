@@ -140,7 +140,7 @@ static int template_parser_extract_param(zval *param TSRMLS_DC){
     if(param && (Z_TYPE_P(param) == IS_ARRAY)){
         for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
             zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
-            zend_hash_move_forward_ex(Z_ARRVAL_P(param),$it_pos)){
+            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
             if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
                 continue;
             }
