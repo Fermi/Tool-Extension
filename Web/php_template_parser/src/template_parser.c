@@ -58,6 +58,10 @@ PHP_FUNCTION(template_parser_pause){
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template,&template_length,&param,&openTest) == FAILURE){
         return ;
     }
+    //Start output.
+    if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGSS TSRMLS_CC) == FAILURE){
+        return 1; 
+    }
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
         real_object = Z_OBJVAL_P(object_container);
@@ -66,7 +70,9 @@ PHP_FUNCTION(template_parser_pause){
     }
 
     if(template_length){
-        TEMPLATE_PARSER_PARSE_STORE_ENV();
+        TEMPLATE_PARSER_PARSE_STORE_ENV(real_object->ce);
+        //Extract params.
+        template_parser_extract_param(param TSRMLS_CC);
         //Format template zval.
         INIT_ZVAL(template_zval);
         Z_TYPE(template_zval) = IS_STRING;
@@ -97,6 +103,7 @@ PHP_FUNCTION(template_parser_pause){
     //Return processed template string and give it back to PHP.
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
+    php_output_end(TSRMLS_CC);
     //TODO: result leak memory every time it's called. Must be solved.
     if(template_length){
         RETURN_STRINGL(result->string,result->length,0);

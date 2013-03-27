@@ -45,7 +45,7 @@ PHP_FUNCTION(template_parser_parse);
     TEMPLATE_PARSER_G(result_buffer) = result_buffer; \
     OG(php_body_write) = stored_output_func;
 
-#define TEMPLATE_PARSER_PARSE_STORE_ENV() \
+#define TEMPLATE_PARSER_PARSE_STORE_ENV(SCOPE) \
     HashTable *stored_active_symbol_table; \
     zend_class_entry *stored_scope; \
     if(EG(active_symbol_table)) { \
@@ -54,6 +54,7 @@ PHP_FUNCTION(template_parser_parse);
         stored_active_symbol_table = NULL; \
     } \
     stored_scope = EG(scope); \
+    EG(scope) = SCOPE; \
     ALLOC_HASHTABLE(EG(active_symbol_table)); \
     zend_hash_init(EG(active_symbol_table),0,NULL,ZVAL_PTR_DTOR,0); \
 
