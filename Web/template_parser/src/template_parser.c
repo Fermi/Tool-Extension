@@ -8,7 +8,7 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(template_parser)
 
-#ifdef COMPILE_SO_TEMPLATE_PARSER
+#ifdef COMPILE_DL_TEMPLATE_PARSER
 ZEND_GET_MODULE(template_parser)
 #endif
 
