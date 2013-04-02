@@ -63,6 +63,7 @@ static int template_parser_extract_param(zval *param TSRMLS_DC){
     }
     return 1;
 }
+
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
     template_parser_parse_result_buffer *source;
     template_parser_parse_result_buffer *dest;
@@ -92,7 +93,6 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
         return 1;
     } 
 }
-
 
 PHP_FUNCTION(template_parser_pause){
     //Input params.
