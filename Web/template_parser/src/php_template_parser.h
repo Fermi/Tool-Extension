@@ -13,6 +13,8 @@
 #define TEMPLATE_PARSER_G(v) (template_parser_globals.v)
 #endif
 
+#define PHP_TEMPLATE_PARSER_VERSION 1.0
+
 extern zend_module_entry template_parser_module_entry;
 extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
 
@@ -22,12 +24,13 @@ extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
 //PHP_RINIT_FUNCTION(template_parser_request);
 //PHP_RSHUTDOWN_FUNCTION(template_parser_request);
 
+typedef struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_ template_parser_parse_result_buffer;
+
 struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_{
     char *string;
     unsigned long length;
 };
 
-typedef _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_ template_parser_parse_result_buffer;
 
 ZEND_BEGIN_MODULE_GLOBALS(template_parser)
     template_parser_parse_result_buffer *result_buffer;

@@ -12,7 +12,7 @@ ZEND_DECLARE_MODULE_GLOBALS(template_parser)
 ZEND_GET_MODULE(template_parser)
 #endif
 
-ZEND_BEGIN_ARG_INFO_EX(template_parser_pause_args,ZEND_ZEND_BY_VAL,ZEND_RETURN_VAL,2)
+ZEND_BEGIN_ARG_INFO_EX(template_parser_pause_args,0,0,2)
     ZEND_ARG_INFO(0,object)
     ZEND_ARG_INFO(0,template)
     ZEND_ARG_ARRAY_INFO(0,param,1)
@@ -36,6 +36,63 @@ zend_module_entry template_parser_module_entry = {
     PHP_TEMPLATE_PARSER_VERSION,
     STANDARD_MODULE_PROPERTIES
 };
+
+static int template_parser_extract_param(zval *param TSRMLS_DC){
+    HashPosition it_pos;
+    zval **param_value = NULL;
+    char *name;
+    ulong count;
+    uint length;
+
+    
+    if(!EG(active_symbol_table)){
+        return 1;
+    }
+
+    if(param && (Z_TYPE_P(param) == IS_ARRAY)){
+        for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
+            zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
+            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
+            if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
+                continue;
+            }
+            //TODO: key name validation.
+            ZEND_SET_SYMBOL_WITH_LENGTH(EG(active_symbol_table),name,length,*param_value,Z_REFCOUNT_P(*param_value)+1,PZVAL_IS_REF(*param_value));
+        }
+        return 0;
+    }
+    return 1;
+}
+static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
+    template_parser_parse_result_buffer *source;
+    template_parser_parse_result_buffer *dest;
+    unsigned long total_length;
+
+    if(str){
+        source = TEMPLATE_PARSER_G(result_buffer);
+        if(source){
+            source->string = (char *)erealloc(source->string,source->length+length+1);
+            if(source->string){
+                dest = source->string+source->length;
+            }
+        } else {
+            source = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer));
+            source->string = (char *)emalloc(length+1);
+            if(source&&source->string){
+                dest = source->string;
+            }
+        }
+        memcpy(dest,str,length);
+        source->string[total_length] = '\n';
+        TEMPLATE_PARSER_G(result_buffer) = source;
+
+        return 0;
+    } else {
+        //TODO:Error handling.
+        return 1;
+    } 
+}
+
 
 PHP_FUNCTION(template_parser_pause){
     //Input params.
@@ -64,7 +121,7 @@ PHP_FUNCTION(template_parser_pause){
     }
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
-        real_object = Z_OBJVAL_P(object_container);
+        real_object = Z_OBJ_P(object_container);
     } else {
         real_object = NULL;
     }
@@ -108,62 +165,6 @@ PHP_FUNCTION(template_parser_pause){
     if(template_length){
         RETURN_STRINGL(result->string,result->length,0);
     } else {
-        return 1;
+        return ;
     }
 }
-static int template_parser_extract_param(zval *param TSRMLS_DC){
-    HashPosition it_pos;
-    zval **param_value = NULL;
-    char *name;
-    ulong count;
-    uint length;
-
-    
-    if(!EG(active_symbol_table)){
-        return 1;
-    }
-
-    if(param && (Z_TYPE_P(param) == IS_ARRAY)){
-        for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
-            zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
-            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
-            if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
-                continue;
-            }
-            //TODO: key name validation.
-            ZEND_SET_SYMBOL_WITH_LENGTH(EG(active_symbol_table),name,length,*param_value,Z_REFCOUNT_P(*param_value)+1,PZVAL_IS_REF(*param_value));
-        }
-        return 0;
-    }
-    return 1;
-}
-static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
-    template_parser_parse_result_buffer *source;
-    template_parser_parse_result_buffer *dest;
-    unsigned long total_length;
-
-    if(str){
-        source = TEMPLATE_PARSER_G(result_buffer);
-        if(source){
-            source->string = (char *)emalloc(source->string,source->length+length+1);
-            if(source->string){
-                dest = source->string+source->length;
-            }
-        } else {
-            source = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer));
-            source->string = (char *)emalloc(length+1);
-            if(source&&source->string){
-                dest = source->string;
-            }
-        }
-        memcpy(dest,str,length);
-        source->string[total_length] = '\n';
-        TEMPLATE_PARSER_G(result_buffer) = source;
-
-        return 0;
-    } else {
-        //TODO:Error handling.
-        return 1;
-    } 
-}
-
