@@ -2,6 +2,7 @@
 #define _PHP_TEMPLATE_PARSER_H
 
 #include "php.h"
+#include "main/php_output.h"
 
 #ifdef ZTS
 #include "TSRM.h"
@@ -13,7 +14,7 @@
 #define TEMPLATE_PARSER_G(v) (template_parser_globals.v)
 #endif
 
-#define PHP_TEMPLATE_PARSER_VERSION 1.0
+#define PHP_TEMPLATE_PARSER_VERSION "1.0"
 
 extern zend_module_entry template_parser_module_entry;
 extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);

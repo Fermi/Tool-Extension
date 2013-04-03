@@ -1,8 +1,6 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "php.h"
-#include "main/php_output.h"
 
 #include "php_template_parser.h"
 
@@ -17,7 +15,7 @@ ZEND_BEGIN_ARG_INFO_EX(template_parser_pause_args,0,0,2)
     ZEND_ARG_INFO(0,template)
     ZEND_ARG_ARRAY_INFO(0,param,1)
     ZEND_ARG_INFO(0,openTest)
-ZEND_END_ARG_INFO()
+ZEND_END_ARG_INFO();
 
 zend_function_entry template_parser_functions[] = {
     PHP_FE(template_parser_pause,template_parser_pause_args)
@@ -66,7 +64,7 @@ static int template_parser_extract_param(zval *param TSRMLS_DC){
 
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
     template_parser_parse_result_buffer *source;
-    template_parser_parse_result_buffer *dest;
+    char *dest;
     unsigned long total_length;
 
     if(str){
