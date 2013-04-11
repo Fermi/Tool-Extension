@@ -4,7 +4,9 @@
 
 #include "php_template_parser.h"
 
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 ZEND_DECLARE_MODULE_GLOBALS(template_parser)
+#endif
 
 #ifdef COMPILE_DL_TEMPLATE_PARSER
 ZEND_GET_MODULE(template_parser)
@@ -62,6 +64,7 @@ static int template_parser_extract_param(zval *param TSRMLS_DC){
     return 1;
 }
 
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
     template_parser_parse_result_buffer *source;
     char *dest;
@@ -91,6 +94,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
         return 1;
     } 
 }
+#endif
 
 PHP_FUNCTION(template_parser_pause){
     //Input params.
@@ -106,17 +110,19 @@ PHP_FUNCTION(template_parser_pause){
     zend_op_array *execute_array = NULL;
     zval template_zval;
     char *desc = NULL;
-    
-    TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
 
     //Fetch parameters.
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template,&template_length,&param,&openTest) == FAILURE){
         return ;
     }
     //Start output.
+    #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+    TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
+    #else
     if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGSS TSRMLS_CC) == FAILURE){
         return 1; 
     }
+    #endif
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
         real_object = Z_OBJ_P(object_container);
@@ -157,8 +163,11 @@ PHP_FUNCTION(template_parser_pause){
 
     //Return processed template string and give it back to PHP.
     result = TEMPLATE_PARSER_G(result_buffer);
+    #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
+    #else
     php_output_end(TSRMLS_CC);
+    #endif
     //TODO: result leak memory every time it's called. Must be solved.
     if(template_length){
         RETURN_STRINGL(result->string,result->length,0);
