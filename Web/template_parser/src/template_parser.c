@@ -19,24 +19,6 @@ ZEND_BEGIN_ARG_INFO_EX(template_parser_pause_args,0,0,2)
     ZEND_ARG_INFO(0,openTest)
 ZEND_END_ARG_INFO();
 
-zend_function_entry template_parser_functions[] = {
-    PHP_FE(template_parser_pause,template_parser_pause_args)
-    {NULL,NULL,NULL}
-};
-
-zend_module_entry template_parser_module_entry = {
-    STANDARD_MODULE_HEADER,
-    "template_parser",
-    template_parser_functions,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    PHP_TEMPLATE_PARSER_VERSION,
-    STANDARD_MODULE_PROPERTIES
-};
-
 static int template_parser_extract_param(zval *param TSRMLS_DC){
     HashPosition it_pos;
     zval **param_value = NULL;
@@ -119,8 +101,8 @@ PHP_FUNCTION(template_parser_pause){
     #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
     #else
-    if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGSS TSRMLS_CC) == FAILURE){
-        return 1; 
+    if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == FAILURE){
+        return ; 
     }
     #endif
     //Fetch real object in order to fetch it's scope.
@@ -162,11 +144,12 @@ PHP_FUNCTION(template_parser_pause){
 
 
     //Return processed template string and give it back to PHP.
-    result = TEMPLATE_PARSER_G(result_buffer);
     #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+    result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
     #else
-    php_output_end(TSRMLS_CC);
+    //TODO:Fetch result
+    php_output_end(TSRMLS_C);
     #endif
     //TODO: result leak memory every time it's called. Must be solved.
     if(template_length){
@@ -175,3 +158,21 @@ PHP_FUNCTION(template_parser_pause){
         return ;
     }
 }
+
+zend_function_entry template_parser_functions[] = {
+    PHP_FE(template_parser_pause,template_parser_pause_args)
+    {NULL,NULL,NULL}
+};
+
+zend_module_entry template_parser_module_entry = {
+    STANDARD_MODULE_HEADER,
+    "template_parser",
+    template_parser_functions,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    PHP_TEMPLATE_PARSER_VERSION,
+    STANDARD_MODULE_PROPERTIES
+};
