@@ -87,7 +87,11 @@ PHP_FUNCTION(template_parser_pause){
     zend_bool openTest = 0;
     zend_object *real_object = NULL;
     //Result.
+    #if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     template_parser_parse_result_buffer *result = NULL;
+    #else
+    zval *result = NULL;
+    #endif
     //Opcode.
     zend_op_array *execute_array = NULL;
     zval template_zval;
@@ -147,16 +151,25 @@ PHP_FUNCTION(template_parser_pause){
     #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
-    #else
-    //TODO:Fetch result
-    php_output_end(TSRMLS_C);
-    #endif
+
     //TODO: result leak memory every time it's called. Must be solved.
     if(template_length){
         RETURN_STRINGL(result->string,result->length,0);
     } else {
         return ;
     }
+    #else
+    //TODO:Fetch result
+    if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
+        php_output_end(TSRMLS_C);
+        return ;
+    }
+
+    if(php_output_discard(TSRMLS_C) != SUCCESS){
+        return ;
+    }
+    #endif
+    
 }
 
 zend_function_entry template_parser_functions[] = {
