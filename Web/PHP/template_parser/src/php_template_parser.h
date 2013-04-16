@@ -17,8 +17,10 @@
 #define PHP_TEMPLATE_PARSER_VERSION "1.0"
 
 extern zend_module_entry template_parser_module_entry;
-extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
 
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
+#endif
 //PHP_MINIT_FUNCTION(template_parser);
 //PHP_MSHUTDOWN_FUNCTION(template_parser);
 //PHP_MINFO_FUNCTION(template_parser);
