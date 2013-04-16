@@ -38,9 +38,6 @@ ZEND_BEGIN_MODULE_GLOBALS(template_parser)
     template_parser_parse_result_buffer *result_buffer;
 ZEND_END_MODULE_GLOBALS(template_parser)
 
-PHP_FUNCTION(template_parser_parse);
-
-
 #define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(FUNCTION) \
     template_parser_parse_result_buffer *stored_result_buffer = TEMPLATE_PARSER_G(result_buffer); \
     int (*stored_output_func)(const char *str,uint length TSRMLS_DC) = OG(php_body_write); \
@@ -51,6 +48,8 @@ PHP_FUNCTION(template_parser_parse);
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
 #endif
+
+PHP_FUNCTION(template_parser_pause);
 
 #define TEMPLATE_PARSER_PARSE_STORE_ENV(SCOPE) \
     HashTable *stored_active_symbol_table; \

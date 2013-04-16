@@ -168,6 +168,10 @@ PHP_FUNCTION(template_parser_pause){
     if(php_output_discard(TSRMLS_C) != SUCCESS){
         return ;
     }
+
+    if(Z_TYPE(*result) == IS_STRING){
+        RETURN_STRINGL(Z_STRVAL(*result),Z_STRLEN(*result),0);
+    }
     #endif
     
 }
