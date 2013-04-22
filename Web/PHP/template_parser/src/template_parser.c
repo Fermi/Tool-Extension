@@ -87,11 +87,11 @@ PHP_FUNCTION(template_parser_pause){
     zend_bool openTest = 0;
     zend_object *real_object = NULL;
     //Result.
-    #if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+#if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     template_parser_parse_result_buffer *result = NULL;
-    #else
+#else
     zval *result = NULL;
-    #endif
+#endif
     //Opcode.
     zend_op_array *execute_array = NULL;
     zval template_zval;
@@ -102,13 +102,13 @@ PHP_FUNCTION(template_parser_pause){
         return ;
     }
     //Start output.
-    #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
-    #else
+#else
     if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == FAILURE){
         return ; 
     }
-    #endif
+#endif
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
         real_object = Z_OBJ_P(object_container);
@@ -148,7 +148,7 @@ PHP_FUNCTION(template_parser_pause){
 
 
     //Return processed template string and give it back to PHP.
-    #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
 
@@ -158,7 +158,7 @@ PHP_FUNCTION(template_parser_pause){
     } else {
         return ;
     }
-    #else
+#else
     //TODO:Fetch result
     if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
         php_output_end(TSRMLS_C);
@@ -172,7 +172,7 @@ PHP_FUNCTION(template_parser_pause){
     if(Z_TYPE_P(result) == IS_STRING){
         RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);
     }
-    #endif
+#endif
     
 }
 
