@@ -135,7 +135,7 @@ PHP_FUNCTION(template_parser_pause){
             TEMPLATE_PARSER_PARSE_STORE_OPCODE_ENV();
             EG(active_op_array) = execute_array;
             zend_execute(execute_array TSRMLS_CC);
-            destory_op_array(execute_array TSRMLS_CC);
+            destroy_op_array(execute_array TSRMLS_CC);
 
             TEMPLATE_PARSER_PARSE_RESTORE_OPCODE_ENV();
         }

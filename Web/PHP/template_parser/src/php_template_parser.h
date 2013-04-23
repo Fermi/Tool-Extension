@@ -2,7 +2,6 @@
 #define _PHP_TEMPLATE_PARSER_H
 
 #include "php.h"
-#include "main/php_output.h"
 
 #ifdef ZTS
 #include "TSRM.h"
@@ -70,7 +69,7 @@ PHP_FUNCTION(template_parser_pause);
     HashTable *free_active_symbol_table = EG(active_symbol_table); \
     EG(scope) = stored_scope; \
     EG(active_symbol_table) = stored_active_symbol_table; \
-    zend_hash_destory(free_active_symbol_table); \
+    zend_hash_destroy(free_active_symbol_table); \
     FREE_HASHTABLE(free_active_symbol_table);
 
 #define TEMPLATE_PARSER_PARSE_STORE_OPCODE_ENV() \
