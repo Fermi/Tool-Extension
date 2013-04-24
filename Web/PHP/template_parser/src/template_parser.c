@@ -111,7 +111,8 @@ PHP_FUNCTION(template_parser_pause){
 #endif
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
-        real_object = Z_OBJ_P(object_container);
+        //real_object = Z_OBJ_P(object_container);
+        real_object = zend_objects_get_address(object_container TSRMLS_CC);
     } else {
         real_object = NULL;
     }
