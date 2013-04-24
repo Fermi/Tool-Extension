@@ -91,6 +91,7 @@ PHP_FUNCTION(template_parser_pause){
     template_parser_parse_result_buffer *result = NULL;
 #else
     zval *result = NULL;
+    ALLOC_INIT_ZVAL(result);
 #endif
     //Opcode.
     zend_op_array *execute_array = NULL;
@@ -100,6 +101,11 @@ PHP_FUNCTION(template_parser_pause){
     //Fetch parameters.
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template,&template_length,&param,&openTest) == FAILURE){
         return ;
+    }
+    //Tests
+    if(openTest){
+        php_printf("Param Num is %d \n",ZEND_NUM_ARGS());
+        php_printf("Template Length is %d \n",template_length);
     }
     //Start output.
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
@@ -111,6 +117,7 @@ PHP_FUNCTION(template_parser_pause){
 #endif
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
+        //TODO: Find out why below line can't work.
         //real_object = Z_OBJ_P(object_container);
         real_object = zend_objects_get_address(object_container TSRMLS_CC);
     } else {
@@ -153,9 +160,17 @@ PHP_FUNCTION(template_parser_pause){
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
 
+    //Tests
+    if(openTest){
+        php_printf("Result address is %d \n",result);
+        php_printf("Result is %s \n",result);
+    }
     //TODO: result leak memory every time it's called. Must be solved.
     if(template_length){
         RETURN_STRINGL(result->string,result->length,0);
+        efree(result);
+        result = NULL;
+        return ;
     } else {
         return ;
     }
@@ -169,9 +184,15 @@ PHP_FUNCTION(template_parser_pause){
     if(php_output_discard(TSRMLS_C) != SUCCESS){
         return ;
     }
-
+    //Tests
+    if(openTest){
+        php_printf("Result address is %d \n",result);
+        php_printf("Result is %s \n",result);
+    }
     if(Z_TYPE_P(result) == IS_STRING){
         RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);
+        zval_dtor(result);
+        return ;
     }
 #endif
     
