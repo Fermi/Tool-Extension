@@ -46,6 +46,55 @@ static int template_parser_extract_param(zval *param TSRMLS_DC){
     return 1;
 }
 
+static int template_parser_compile_file(char *template_dir,int template_dir_length,zend_object *real_object,zval *param,zend_bool openTest TSRMLS_DC){
+    //File handle.
+    zend_file_handle file_handle;
+    char real_path[MAXPATHLEN];
+    //Opcode.
+    zend_op_array *execute_array = NULL;
+
+    if(IS_ABSOLUTE_PATH(template_dir,template_dir_length)&&virtual_realpath(template_dir,real_path)){
+
+        TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(real_object->ce);
+        //Extract params.
+        template_parser_extract_param(param TSRMLS_CC);
+        
+        file_handle.filename      = template_dir;
+        file_handle.free_filename = 0;
+        file_handle.type          = ZEND_HANDLE_FILENAME;
+        file_handle.opened_path    = NULL;
+        file_handle.handle.fp     = NULL;
+        
+        execute_array = zend_compile_file(&file_handle,ZEND_INCLUDE TSRMLS_CC);
+        
+        if(execute_array&&file_handle.handle.stream.handle){
+            int data = 1; 
+            if(!file_handle.opened_path){
+                file_handle.opened_path = template_dir;
+            }
+            zend_hash_add(&EG(included_files),file_handle.opened_path,strlen(file_handle.opened_path)+1,(void*)(&data),sizeof(int),NULL);
+            zend_destroy_file_handle(&file_handle TSRMLS_CC);
+        }
+        if(execute_array){
+            TEMPLATE_PARSER_COMPILE_FILE_STORE_OPCODE_ENV();
+
+            if(!EG(active_symbol_table)){
+                zend_rebuild_symbol_table(TSRMLS_C);
+            }
+            zend_execute(execute_array TSRMLS_CC);
+            destroy_op_array(execute_array TSRMLS_CC);
+            efree(execute_array);
+            execute_array = NULL;
+            TEMPLATE_PARSER_COMPILE_FILE_RESTORE_OPCODE_ENV();
+        }
+
+        TEMPLATE_PARSER_COMPILE_FILE_RESTORE_ENV();
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
     template_parser_parse_result_buffer *source;
@@ -81,11 +130,13 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
 PHP_FUNCTION(template_parser_pause){
     //Input params.
     zval *object_container = NULL;
-    char *template = NULL;
+    char *template_dir = NULL;
     zval *param = NULL;
-    int template_length = 0;
+    int template_dir_length = 0;
     zend_bool openTest = 0;
     zend_object *real_object = NULL;
+    //Result flag.
+    int result_flag = 0;
     //Result.
 #if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     template_parser_parse_result_buffer *result = NULL;
@@ -93,19 +144,15 @@ PHP_FUNCTION(template_parser_pause){
     zval *result = NULL;
     ALLOC_INIT_ZVAL(result);
 #endif
-    //Opcode.
-    zend_op_array *execute_array = NULL;
-    zval template_zval;
-    char *desc = NULL;
 
     //Fetch parameters.
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template,&template_length,&param,&openTest) == FAILURE){
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template_dir,&template_dir_length,&param,&openTest) == FAILURE){
         return ;
     }
     //Tests
     if(openTest){
         php_printf("Param Num is %d \n",ZEND_NUM_ARGS());
-        php_printf("Template Length is %d \n",template_length);
+        php_printf("Template Length is %d \n",template_dir_length);
     }
     //Start output.
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
@@ -124,7 +171,17 @@ PHP_FUNCTION(template_parser_pause){
         real_object = NULL;
     }
 
-    if(template_length){
+    if(template_dir_length){ 
+        result_flag = template_parser_compile_file(template_dir,template_dir_length,real_object,param,openTest TSRMLS_CC);
+        
+        if(openTest){
+            if(!result_flag){
+                php_printf("Execute normal! \n");
+            } else {
+                php_printf("Execute abnormal! \n");
+            }
+        }
+        /* Below is wrong zend_compile_string complemention.  
         TEMPLATE_PARSER_PARSE_STORE_ENV(real_object->ce);
         //Extract params.
         template_parser_extract_param(param TSRMLS_CC);
@@ -152,10 +209,10 @@ PHP_FUNCTION(template_parser_pause){
         zval_dtor(&template_zval);
 
         TEMPLATE_PARSER_PARSE_RESTORE_ENV();
+        */
     }
 
-
-    //Return processed template string and give it back to PHP.
+        //Return processed template string and give it back to PHP.
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
@@ -163,10 +220,10 @@ PHP_FUNCTION(template_parser_pause){
     //Tests
     if(openTest){
         php_printf("Result address is %d \n",result);
-        php_printf("Result is %s \n",result);
+        php_printf("Result is %s \n",result->string);
     }
-    //TODO: result leak memory every time it's called. Must be solved.
-    if(template_length){
+    //Result memory leak solved.RETURN_* pass results to default return_value,it won't return until you write `return ;`.
+    if(template_dir_length){
         RETURN_STRINGL(result->string,result->length,0);
         efree(result);
         result = NULL;
@@ -175,7 +232,7 @@ PHP_FUNCTION(template_parser_pause){
         return ;
     }
 #else
-    //TODO:Fetch result
+    //Fetch result.
     if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
         php_output_end(TSRMLS_C);
         return ;
@@ -187,7 +244,7 @@ PHP_FUNCTION(template_parser_pause){
     //Tests
     if(openTest){
         php_printf("Result address is %d \n",result);
-        php_printf("Result is %s \n",result);
+        php_printf("Result is %s \n",Z_STRVAL_P(result));
     }
     if(Z_TYPE_P(result) == IS_STRING){
         RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);

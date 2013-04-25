@@ -52,7 +52,7 @@ ZEND_END_MODULE_GLOBALS(template_parser)
 
 PHP_FUNCTION(template_parser_pause);
 
-#define TEMPLATE_PARSER_PARSE_STORE_ENV(SCOPE) \
+#define TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(SCOPE) \
     HashTable *stored_active_symbol_table; \
     zend_class_entry *stored_scope; \
     if(EG(active_symbol_table)) { \
@@ -65,19 +65,19 @@ PHP_FUNCTION(template_parser_pause);
     ALLOC_HASHTABLE(EG(active_symbol_table)); \
     zend_hash_init(EG(active_symbol_table),0,NULL,ZVAL_PTR_DTOR,0); \
 
-#define TEMPLATE_PARSER_PARSE_RESTORE_ENV() \
+#define TEMPLATE_PARSER_COMPILE_FILE_RESTORE_ENV() \
     HashTable *free_active_symbol_table = EG(active_symbol_table); \
     EG(scope) = stored_scope; \
     EG(active_symbol_table) = stored_active_symbol_table; \
     zend_hash_destroy(free_active_symbol_table); \
     FREE_HASHTABLE(free_active_symbol_table);
 
-#define TEMPLATE_PARSER_PARSE_STORE_OPCODE_ENV() \
+#define TEMPLATE_PARSER_COMPILE_FILE_STORE_OPCODE_ENV() \
     zend_op_array *stored_op_array = EG(active_op_array); \
     zend_op **stored_opline_ptr = EG(opline_ptr); \
     zval **stored_return_value_ptr_ptr = EG(return_value_ptr_ptr);
 
-#define TEMPLATE_PARSER_PARSE_RESTORE_OPCODE_ENV() \
+#define TEMPLATE_PARSER_COMPILE_FILE_RESTORE_OPCODE_ENV() \
     EG(active_op_array) = stored_op_array; \
     EG(opline_ptr) = stored_opline_ptr; \
     EG(return_value_ptr_ptr) = stored_return_value_ptr_ptr;
