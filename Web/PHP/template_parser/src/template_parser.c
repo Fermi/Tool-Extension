@@ -19,7 +19,7 @@ ZEND_BEGIN_ARG_INFO_EX(template_parser_pause_args,0,0,2)
     ZEND_ARG_INFO(0,openTest)
 ZEND_END_ARG_INFO();
 
-static int template_parser_extract_param(zval *param TSRMLS_DC){
+static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
     HashPosition it_pos;
     zval **param_value = NULL;
     char *name;
@@ -57,7 +57,7 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
 
         TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(real_object->ce);
         //Extract params.
-        template_parser_extract_param(param TSRMLS_CC);
+        template_parser_extract_param(param,openTest TSRMLS_CC);
         
         file_handle.filename      = template_dir;
         file_handle.free_filename = 0;
