@@ -48,6 +48,7 @@ ZEND_END_MODULE_GLOBALS(template_parser)
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
+
 #endif
 
 PHP_FUNCTION(template_parser_pause);

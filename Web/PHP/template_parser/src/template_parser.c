@@ -77,7 +77,7 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
         }
         if(execute_array){
             TEMPLATE_PARSER_COMPILE_FILE_STORE_OPCODE_ENV();
-
+            EG(active_op_array) = execute_array;
             if(!EG(active_symbol_table)){
                 zend_rebuild_symbol_table(TSRMLS_C);
             }
@@ -135,8 +135,6 @@ PHP_FUNCTION(template_parser_pause){
     int template_dir_length = 0;
     zend_bool openTest = 0;
     zend_object *real_object = NULL;
-    //Result flag.
-    int result_flag = 0;
     //Result.
 #if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     template_parser_parse_result_buffer *result = NULL;
@@ -149,12 +147,7 @@ PHP_FUNCTION(template_parser_pause){
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template_dir,&template_dir_length,&param,&openTest) == FAILURE){
         return ;
     }
-    //Tests
-    if(openTest){
-        php_printf("Param Num is %d \n",ZEND_NUM_ARGS());
-        php_printf("Template Length is %d \n",template_dir_length);
-    }
-    //Start output.
+    //Start redirect output.
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
 #else
@@ -172,15 +165,8 @@ PHP_FUNCTION(template_parser_pause){
     }
 
     if(template_dir_length){ 
-        result_flag = template_parser_compile_file(template_dir,template_dir_length,real_object,param,openTest TSRMLS_CC);
+        template_parser_compile_file(template_dir,template_dir_length,real_object,param,openTest TSRMLS_CC);
         
-        if(openTest){
-            if(!result_flag){
-                php_printf("Execute normal! \n");
-            } else {
-                php_printf("Execute abnormal! \n");
-            }
-        }
         /* Below is wrong zend_compile_string complemention.  
         TEMPLATE_PARSER_PARSE_STORE_ENV(real_object->ce);
         //Extract params.
@@ -212,16 +198,11 @@ PHP_FUNCTION(template_parser_pause){
         */
     }
 
-        //Return processed template string and give it back to PHP.
+    //Fetch result & return processed template string and give it back to PHP.
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
 
-    //Tests
-    if(openTest){
-        php_printf("Result address is %d \n",result);
-        php_printf("Result is %s \n",result->string);
-    }
     //Result memory leak solved.RETURN_* pass results to default return_value,it won't return until you write `return ;`.
     if(template_dir_length){
         RETURN_STRINGL(result->string,result->length,0);
@@ -240,11 +221,6 @@ PHP_FUNCTION(template_parser_pause){
 
     if(php_output_discard(TSRMLS_C) != SUCCESS){
         return ;
-    }
-    //Tests
-    if(openTest){
-        php_printf("Result address is %d \n",result);
-        php_printf("Result is %s \n",Z_STRVAL_P(result));
     }
     if(Z_TYPE_P(result) == IS_STRING){
         RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);
