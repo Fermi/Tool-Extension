@@ -4,9 +4,9 @@
 
 #include "php_template_parser.h"
 
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 ZEND_DECLARE_MODULE_GLOBALS(template_parser)
-#endif
+//#endif
 
 #ifdef COMPILE_DL_TEMPLATE_PARSER
 ZEND_GET_MODULE(template_parser)
@@ -95,7 +95,7 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
     }
 }
 
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
     template_parser_parse_result_buffer *source;
     char *dest;
@@ -125,7 +125,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
         return 1;
     } 
 }
-#endif
+//#endif
 
 PHP_FUNCTION(template_parser_pause){
     //Input params.
@@ -136,25 +136,25 @@ PHP_FUNCTION(template_parser_pause){
     zend_bool openTest = 0;
     zend_object *real_object = NULL;
     //Result.
-#if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+//#if((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     template_parser_parse_result_buffer *result = NULL;
-#else
-    zval *result = NULL;
-    ALLOC_INIT_ZVAL(result);
-#endif
+//#else
+//    zval *result = NULL;
+//    ALLOC_INIT_ZVAL(result);
+//#endif
 
     //Fetch parameters.
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"os|ab",&object_container,&template_dir,&template_dir_length,&param,&openTest) == FAILURE){
         return ;
     }
     //Start redirect output.
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
-#else
-    if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == FAILURE){
-        return ; 
-    }
-#endif
+//#else
+//    if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == FAILURE){
+//        return ; 
+//    }
+//#endif
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
         //TODO: Find out why below line can't work.
@@ -199,7 +199,7 @@ PHP_FUNCTION(template_parser_pause){
     }
 
     //Fetch result & return processed template string and give it back to PHP.
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
 
@@ -212,22 +212,22 @@ PHP_FUNCTION(template_parser_pause){
     } else {
         return ;
     }
-#else
+//#else
     //Fetch result.
-    if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
-        php_output_end(TSRMLS_C);
-        return ;
-    }
+//    if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
+//        php_output_end(TSRMLS_C);
+//        return ;
+//    }
 
-    if(php_output_discard(TSRMLS_C) != SUCCESS){
-        return ;
-    }
-    if(Z_TYPE_P(result) == IS_STRING){
-        RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);
-        zval_dtor(result);
-        return ;
-    }
-#endif
+//    if(php_output_discard(TSRMLS_C) != SUCCESS){
+//        return ;
+//    }
+//    if(Z_TYPE_P(result) == IS_STRING){
+//        RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);
+//        zval_dtor(result);
+//        return ;
+//    }
+//#endif
     
 }
 

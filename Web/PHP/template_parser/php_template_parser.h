@@ -33,7 +33,7 @@ struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_{
     unsigned long length;
 };
 
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 
 ZEND_BEGIN_MODULE_GLOBALS(template_parser)
     template_parser_parse_result_buffer *result_buffer;
@@ -49,7 +49,7 @@ ZEND_END_MODULE_GLOBALS(template_parser)
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
 
-#endif
+//#endif
 
 PHP_FUNCTION(template_parser_pause);
 
