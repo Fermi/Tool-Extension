@@ -8,6 +8,8 @@
 ZEND_GET_MODULE(template_parser)
 #endif
 
+ZEND_DECLARE_MODULE_GLOBALS(template_parser);
+
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){

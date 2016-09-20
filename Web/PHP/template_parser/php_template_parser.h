@@ -8,7 +8,6 @@
 #endif
 
 extern zend_module_entry template_parser_module_entry;
-extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
 
 #define PHP_TEMPLATE_PARSER_VERSION "2.0"
 
