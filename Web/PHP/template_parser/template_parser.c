@@ -68,10 +68,7 @@ PHP_FUNCTION(template_parser_parse){
         return ;
     }
     //Start redirect output.
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
-    TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
-#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-#endif
+    TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
 //#else
 //    if(php_output_start_user(NULL,0,PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == FAILURE){
 //        return ; 
@@ -121,7 +118,6 @@ PHP_FUNCTION(template_parser_parse){
     }
 
     //Fetch result & return processed template string and give it back to PHP.
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
 
@@ -134,8 +130,6 @@ PHP_FUNCTION(template_parser_parse){
     } else {
         return ;
     }
-#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-#endif
 //#else
     //Fetch result.
 //    if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
@@ -163,14 +157,7 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
     zend_op_array *execute_array = NULL;
 
     if(IS_ABSOLUTE_PATH(template_dir,template_dir_length)&&virtual_realpath(template_dir,real_path)){
-
-//TODO: Below commented macros section should be checked carefully to change
-//according to the differences of different version implementation.
-
-//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
         TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(real_object->ce);
-//#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-//#endif
         //Extract params.
         template_parser_extract_param(param,openTest TSRMLS_CC);
 
@@ -191,10 +178,7 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
             zend_destroy_file_handle(&file_handle TSRMLS_CC);
         }
         if(execute_array){
-//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
             TEMPLATE_PARSER_COMPILE_FILE_STORE_OPCODE_ENV();
-//#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-//#endif
             EG(active_op_array) = execute_array;
             if(!EG(active_symbol_table)){
                 zend_rebuild_symbol_table(TSRMLS_C);
@@ -203,16 +187,10 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
             destroy_op_array(execute_array TSRMLS_CC);
             efree(execute_array);
             execute_array = NULL;
-//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
             TEMPLATE_PARSER_COMPILE_FILE_RESTORE_OPCODE_ENV();
-//#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-//#endif
         }
 
-//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
         TEMPLATE_PARSER_COMPILE_FILE_RESTORE_ENV();
-//#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-//#endif
         return 0;
     } else {
         return 1;

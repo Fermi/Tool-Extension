@@ -23,6 +23,8 @@ extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
 
 typedef struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_ template_parser_parse_result_buffer;
 
+static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
+
 struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_{
     char *string;
     unsigned long length;
@@ -32,17 +34,23 @@ ZEND_BEGIN_MODULE_GLOBALS(template_parser)
     template_parser_parse_result_buffer *result_buffer;
 ZEND_END_MODULE_GLOBALS(template_parser)
 
-#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(FUNCTION) \
+#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
     template_parser_parse_result_buffer *stored_result_buffer = TEMPLATE_PARSER_G(result_buffer); \
     TEMPLATE_PARSER_G(result_buffer) = NULL; \
     int (*stored_output_func)(const char *str,uint length TSRMLS_DC) = OG(php_body_write); \
-    OG(php_body_write) = FUNCTION;
+    OG(php_body_write) = template_parser_output_writer;
 
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
 
 #elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
+
+//TODO: Do the different thing than PHP5.3 and below OG buffer
+#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER()
+
+#define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER()
+
 #endif
 
 //TODO: Check if below macros didn't depend on version implementation now that
