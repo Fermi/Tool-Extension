@@ -12,7 +12,7 @@ ZEND_DECLARE_MODULE_GLOBALS(template_parser)
 ZEND_GET_MODULE(template_parser)
 #endif
 
-ZEND_BEGIN_ARG_INFO_EX(template_parser_pause_args,0,0,2)
+ZEND_BEGIN_ARG_INFO_EX(template_parser_parse_args,0,0,2)
     ZEND_ARG_INFO(0,object)
     ZEND_ARG_INFO(0,template)
     ZEND_ARG_ARRAY_INFO(0,param,1)
@@ -127,7 +127,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
 }
 //#endif
 
-PHP_FUNCTION(template_parser_pause){
+PHP_FUNCTION(template_parser_parse){
     //Input params.
     zval *object_container = NULL;
     char *template_dir = NULL;
@@ -232,7 +232,7 @@ PHP_FUNCTION(template_parser_pause){
 }
 
 zend_function_entry template_parser_functions[] = {
-    PHP_FE(template_parser_pause,template_parser_pause_args)
+    PHP_FE(template_parser_parse,template_parser_parse_args)
     {NULL,NULL,NULL}
 };
 
