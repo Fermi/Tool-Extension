@@ -10,12 +10,6 @@
 extern zend_module_entry template_parser_module_entry;
 extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
 
-#ifdef ZTS
-#define TEMPLATE_PARSER_G(v) TSRMG(template_parser_globals_id,zend_template_parser_globals *,v)
-#else
-#define TEMPLATE_PARSER_G(v) (template_parser_globals.v)
-#endif
-
 #define PHP_TEMPLATE_PARSER_VERSION "2.0"
 
 typedef struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_ template_parser_parse_result_buffer;
@@ -26,6 +20,12 @@ struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_{
 ZEND_BEGIN_MODULE_GLOBALS(template_parser)
     template_parser_parse_result_buffer *result_buffer;
 ZEND_END_MODULE_GLOBALS(template_parser)
+
+#ifdef ZTS
+#define TEMPLATE_PARSER_G(v) TSRMG(template_parser_globals_id,zend_template_parser_globals *,v)
+#else
+#define TEMPLATE_PARSER_G(v) (template_parser_globals.v)
+#endif
 
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 
