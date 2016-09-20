@@ -47,7 +47,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 #define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
 	zval *output_handler = NULL; \
 	if (php_output_start_user(output_handler, 0, PHP_OUTPUT_HANDLER_STDFLAGS) == FAILURE) { \
-			return 1; \
+			return ; \
 	}
 
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER()
@@ -81,9 +81,9 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 			zend_stack_push(&OG(handlers), &OG(active)); \
 		} \
 		php_output_context_dtor(&context); \
-		return 0; \
+		return ; \
 	} else { \
-		return 1; \
+		return ; \
 	}
 
 #endif
