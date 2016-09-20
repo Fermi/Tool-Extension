@@ -52,6 +52,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
 	if (OG(active) && (OG(active)->flags & PHP_OUTPUT_HANDLER_FLUSHABLE)) { \
+		php_output_context context; \
 		php_output_context_init(&context, PHP_OUTPUT_HANDLER_FLUSH); \
 		php_output_handler_op(OG(active), &context); \
 		if (context.out.data && context.out.used) { \
