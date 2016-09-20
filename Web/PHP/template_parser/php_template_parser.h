@@ -13,45 +13,56 @@
 #define TEMPLATE_PARSER_G(v) (template_parser_globals.v)
 #endif
 
-#define PHP_TEMPLATE_PARSER_VERSION "1.0"
+#define PHP_TEMPLATE_PARSER_VERSION "2.0"
 
 extern zend_module_entry template_parser_module_entry;
 
-//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 extern ZEND_DECLARE_MODULE_GLOBALS(template_parser);
-//#endif
+
 //PHP_MINIT_FUNCTION(template_parser);
 //PHP_MSHUTDOWN_FUNCTION(template_parser);
 //PHP_MINFO_FUNCTION(template_parser);
 //PHP_RINIT_FUNCTION(template_parser_request);
 //PHP_RSHUTDOWN_FUNCTION(template_parser_request);
 
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 typedef struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_ template_parser_parse_result_buffer;
 
 struct _TEMPLATE_PARSER_PARSE_RESULT_BUFFER_{
     char *string;
     unsigned long length;
 };
+#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
 
-//#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+#endif
 
 ZEND_BEGIN_MODULE_GLOBALS(template_parser)
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4)) 
     template_parser_parse_result_buffer *result_buffer;
+#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
+
+#endif
 ZEND_END_MODULE_GLOBALS(template_parser)
 
 #define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(FUNCTION) \
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4)) 
     template_parser_parse_result_buffer *stored_result_buffer = TEMPLATE_PARSER_G(result_buffer); \
-    int (*stored_output_func)(const char *str,uint length TSRMLS_DC) = OG(php_body_write); \
     TEMPLATE_PARSER_G(result_buffer) = NULL; \
+    int (*stored_output_func)(const char *str,uint length TSRMLS_DC) = OG(php_body_write); \
     OG(php_body_write) = FUNCTION;
+#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
+
+#endif
 
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))   
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
+#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
 
-//#endif
+#endif
 
-PHP_FUNCTION(template_parser_pause);
+PHP_FUNCTION(template_parser_parse);
 
 #define TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(SCOPE) \
     HashTable *stored_active_symbol_table; \
