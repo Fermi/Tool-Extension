@@ -40,7 +40,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
 
-#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
+#elif ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))
 
 //TODO: Do the different thing than PHP5.3 and below OG buffer
 #define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
@@ -78,6 +78,50 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 			TEMPLATE_PARSER_G(result_buffer) = source; \
 			zend_stack_del_top(&OG(handlers)); \
 			zend_stack_push(&OG(handlers), &OG(active), sizeof(void *)); \
+		} \
+		php_output_context_dtor(&context); \
+		return ; \
+	} else { \
+		return ; \
+	}
+
+#elif (PHP_MAJOR_VERSION == 7)
+
+#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
+	zval *output_handler = NULL; \
+	if (php_output_start_user(output_handler, 0, PHP_OUTPUT_HANDLER_STDFLAGS) == FAILURE) { \
+			return ; \
+	}
+
+#define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
+	if (OG(active) && (OG(active)->flags & PHP_OUTPUT_HANDLER_FLUSHABLE)) { \
+		php_output_context context; \
+		php_output_context_init(&context, PHP_OUTPUT_HANDLER_FLUSH); \
+		php_output_handler_op(OG(active), &context); \
+		if (context.out.data && context.out.used) { \
+			template_parser_parse_result_buffer *source; \
+			char *dest; \
+			unsigned long total_length; \
+			source = TEMPLATE_PARSER_G(result_buffer); \
+			if(source){ \
+			    source->string = (char *)erealloc(source->string,source->length+context.out.used+1); \
+			    if(source->string){ \
+			        dest = source->string+source->length; \
+			        total_length = source->length+context.out.used; \
+			    } \
+			} else { \
+			    source = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer)); \
+			    source->string = (char *)emalloc(context.out.used+1); \
+			    if(source&&source->string){ \
+			        dest = source->string; \
+			        total_length = context.out.used; \
+			    } \
+			} \
+			memcpy(dest,context.out.data,context.out.used); \
+			source->string[total_length] = '\n'; \
+			TEMPLATE_PARSER_G(result_buffer) = source; \
+			zend_stack_del_top(&OG(handlers)); \
+			zend_stack_push(&OG(handlers), &OG(active)); \
 		} \
 		php_output_context_dtor(&context); \
 		return ; \
