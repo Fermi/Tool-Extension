@@ -47,6 +47,33 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
 #elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
 #endif
 
+static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
+    HashPosition it_pos;
+    zval **param_value = NULL;
+    char *name;
+    ulong count;
+    uint length;
+
+
+    if(!EG(active_symbol_table)){
+        return 1;
+    }
+
+    if(param && (Z_TYPE_P(param) == IS_ARRAY)){
+        for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
+            zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
+            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
+            if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
+                continue;
+            }
+            //TODO: key name validation.
+            ZEND_SET_SYMBOL_WITH_LENGTH(EG(active_symbol_table),name,length,*param_value,Z_REFCOUNT_P(*param_value)+1,PZVAL_IS_REF(*param_value));
+        }
+        return 0;
+    }
+    return 1;
+}
+
 static int template_parser_compile_file(char *template_dir,int template_dir_length,zend_object *real_object,zval *param,zend_bool openTest TSRMLS_DC){
     //File handle.
     zend_file_handle file_handle;
@@ -93,33 +120,6 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
     } else {
         return 1;
     }
-}
-
-static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
-    HashPosition it_pos;
-    zval **param_value = NULL;
-    char *name;
-    ulong count;
-    uint length;
-
-
-    if(!EG(active_symbol_table)){
-        return 1;
-    }
-
-    if(param && (Z_TYPE_P(param) == IS_ARRAY)){
-        for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
-            zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
-            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
-            if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
-                continue;
-            }
-            //TODO: key name validation.
-            ZEND_SET_SYMBOL_WITH_LENGTH(EG(active_symbol_table),name,length,*param_value,Z_REFCOUNT_P(*param_value)+1,PZVAL_IS_REF(*param_value));
-        }
-        return 0;
-    }
-    return 1;
 }
 
 PHP_FUNCTION(template_parser_parse){
