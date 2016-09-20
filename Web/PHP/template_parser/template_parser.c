@@ -4,8 +4,6 @@
 
 #include "php_template_parser.h"
 
-ZEND_DECLARE_MODULE_GLOBALS(template_parser)
-
 #ifdef COMPILE_DL_TEMPLATE_PARSER
 ZEND_GET_MODULE(template_parser)
 #endif
