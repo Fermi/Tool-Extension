@@ -188,7 +188,11 @@ PHP_FUNCTION(template_parser_parse){
 
     //Result memory leak solved.RETURN_* pass results to default return_value,it won't return until you write `return ;`.
     if(template_dir_length){
+#if (PHP_MAJOR_VERSION == 5)
         RETURN_STRINGL(result->string,result->length,0);
+#elif (PHP_MAJOR_VERSION == 7)
+        RETURN_STRINGL(result->string,result->length);
+#endif
         efree(result);
         result = NULL;
         return ;
