@@ -4,13 +4,13 @@
 
 #include "php_template_parser.h"
 
+ZEND_DECLARE_MODULE_GLOBALS(template_parser)
+
 #ifdef COMPILE_DL_TEMPLATE_PARSER
 ZEND_GET_MODULE(template_parser)
 #endif
 
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
-
-ZEND_DECLARE_MODULE_GLOBALS(template_parser)
 
 static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
     template_parser_parse_result_buffer *source;
@@ -23,12 +23,14 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
             source->string = (char *)erealloc(source->string,source->length+length+1);
             if(source->string){
                 dest = source->string+source->length;
+                total_length = source->length+length;
             }
         } else {
             source = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer));
             source->string = (char *)emalloc(length+1);
             if(source&&source->string){
                 dest = source->string;
+                total_length = length;
             }
         }
         memcpy(dest,str,length);
@@ -54,10 +56,7 @@ PHP_FUNCTION(template_parser_parse){
     zend_bool openTest = 0;
     zend_object *real_object = NULL;
     //Result.
-#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     template_parser_parse_result_buffer *result = NULL;
-#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
-#endif
 //#else
 //    zval *result = NULL;
 //    ALLOC_INIT_ZVAL(result);
