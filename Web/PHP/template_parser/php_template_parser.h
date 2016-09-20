@@ -73,11 +73,10 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 			        total_length = context.out.used; \
 			    } \
 			} \
-			memcpy(dest,context.out.data,length); \
+			memcpy(dest,context.out.data,context.out.used); \
 			source->string[total_length] = '\n'; \
 			TEMPLATE_PARSER_G(result_buffer) = source; \
 			zend_stack_del_top(&OG(handlers)); \
-			php_output_write(context.out.data, context.out.used); \
 			zend_stack_push(&OG(handlers), &OG(active)); \
 		} \
 		php_output_context_dtor(&context); \
