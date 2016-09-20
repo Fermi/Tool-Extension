@@ -78,7 +78,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 			source->string[total_length] = '\n'; \
 			TEMPLATE_PARSER_G(result_buffer) = source; \
 			zend_stack_del_top(&OG(handlers)); \
-			zend_stack_push(&OG(handlers), &OG(active)); \
+			zend_stack_push(&OG(handlers), &OG(active), sizeof(void *)); \
 		} \
 		php_output_context_dtor(&context); \
 		return ; \
