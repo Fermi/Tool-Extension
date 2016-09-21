@@ -65,7 +65,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	dest->string[total_length] = '\0'; \
 	TEMPLATE_PARSER_G(result_buffer) = dest; \
 	php_output_end(TSRMLS_C); \
-	zval_ptr_dtor(&str); \
+	zval_ptr_dtor(str); \
 
 #elif (PHP_MAJOR_VERSION == 7)
 
