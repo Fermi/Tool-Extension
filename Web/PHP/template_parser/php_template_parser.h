@@ -53,7 +53,9 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	zval *str; \
 	unsigned long total_length = 0; \
 	MAKE_STD_ZVAL(str); \
-	php_output_get_contents(str); \
+	if(php_output_get_contents(str) == FAILURE){ \
+		return ; \
+	} \
 	template_parser_parse_result_buffer *dest; \
 	total_length = Z_STRLEN_P(str); \
 	dest = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer)); \
