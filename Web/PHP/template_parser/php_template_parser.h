@@ -69,6 +69,8 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 
 #elif (PHP_MAJOR_VERSION == 7)
 
+//TODO: Need to change zval * to zval maybe.
+//TODO: Finish this change according to version implementation.
 #define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
 	zval *output_handler = NULL; \
 	if (php_output_start_user(output_handler, 0, PHP_OUTPUT_HANDLER_STDFLAGS) == FAILURE) { \
@@ -76,7 +78,6 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	}
 
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
-	//TODO: Finish this change according to version implementation.
 	zval *str; \
 	unsigned long total_length = 0; \
 	MAKE_STD_ZVAL(str); \
