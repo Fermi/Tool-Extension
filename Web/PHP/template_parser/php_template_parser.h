@@ -51,7 +51,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
 	zval *str; \
 	unsigned long total_length = 0; \
-	MAKE_STD(str); \
+	MAKE_STD_ZVAL(str); \
 	if(php_output_get_contents(str) == FAILURE){ \
 		return ; \
 	} \
