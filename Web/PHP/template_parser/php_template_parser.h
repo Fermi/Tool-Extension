@@ -40,7 +40,34 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \
     OG(php_body_write) = stored_output_func;
 
-#elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
+#elif ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))
+
+#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
+	zval *output_handler = NULL; \
+	if (php_output_start_user(output_handler, 0, PHP_OUTPUT_HANDLER_STDFLAGS) == FAILURE) { \
+			return ; \
+	}
+
+#define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
+	//TODO: Finish this change according to version implementation.
+	zval *str; \
+	unsigned long total_length = 0; \
+	MAKE_STD_ZVAL(str); \
+	if(php_output_get_contents(str) == FAILURE){ \
+		return ; \
+	} \
+	template_parser_parse_result_buffer *dest; \
+	total_length = Z_STRLEN_P(str); \
+	dest = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer)); \
+	dest->string = (char *)emalloc(total_length+1); \
+	dest->length = total_length; \
+	memcpy(dest->string,Z_STRVAL_P(str),total_length); \
+	dest->string[total_length] = '\0'; \
+	TEMPLATE_PARSER_G(result_buffer) = dest; \
+	php_output_end(TSRMLS_C); \
+	zval_ptr_dtor(&str); \
+
+#elif (PHP_MAJOR_VERSION == 7)
 
 #define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
 	zval *output_handler = NULL; \
