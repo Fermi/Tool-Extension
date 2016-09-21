@@ -52,7 +52,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	//TODO: Finish this change according to version implementation.
 	zval *str; \
 	unsigned long total_length = 0; \
-	MAKE_STD_ZVAL(str); \
+	ALLOC_INIT_ZVAL(str); \
 	if(php_output_get_contents(str) == FAILURE){ \
 		return ; \
 	} \
@@ -65,7 +65,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	dest->string[total_length] = '\0'; \
 	TEMPLATE_PARSER_G(result_buffer) = dest; \
 	php_output_end(TSRMLS_C); \
-	zval_ptr_dtor(str); \
+	zval_dtor(str); \
 
 #elif (PHP_MAJOR_VERSION == 7)
 
