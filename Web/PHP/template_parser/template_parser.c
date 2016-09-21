@@ -279,23 +279,6 @@ PHP_FUNCTION(template_parser_parse){
     } else {
         return ;
     }
-//#else
-    //Fetch result.
-//    if(php_output_get_contents(result TSRMLS_CC) == FAILURE){
-//        php_output_end(TSRMLS_C);
-//        return ;
-//    }
-
-//    if(php_output_discard(TSRMLS_C) != SUCCESS){
-//        return ;
-//    }
-//    if(Z_TYPE_P(result) == IS_STRING){
-//        RETURN_STRINGL(Z_STRVAL_P(result),Z_STRLEN_P(result),0);
-//        zval_dtor(result);
-//        return ;
-//    }
-//#endif
-    
 }
 
 ZEND_BEGIN_ARG_INFO_EX(template_parser_parse_args,0,0,2)
