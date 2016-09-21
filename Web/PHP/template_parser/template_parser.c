@@ -47,6 +47,8 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
 #elif (((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))||(PHP_MAJOR_VERSION == 7))
 #endif
 
+#if (PHP_MAJOR_VERSION == 5)
+
 static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
     HashPosition it_pos;
     zval **param_value = NULL;
@@ -121,6 +123,84 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
         return 1;
     }
 }
+#elif (PHP_MAJOR_VERSION == 7)
+
+static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
+    HashPosition it_pos;
+    zval **param_value = NULL;
+    char *name;
+    ulong count;
+    uint length;
+
+
+    if(!EG(active_symbol_table)){
+        return 1;
+    }
+
+    if(param && (Z_TYPE_P(param) == IS_ARRAY)){
+        for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
+            zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
+            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
+            if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
+                continue;
+            }
+            //TODO: key name validation.
+            ZEND_SET_SYMBOL_WITH_LENGTH(EG(active_symbol_table),name,length,*param_value,Z_REFCOUNT_P(*param_value)+1,PZVAL_IS_REF(*param_value));
+        }
+        return 0;
+    }
+    return 1;
+}
+
+static int template_parser_compile_file(char *template_dir,int template_dir_length,zend_object *real_object,zval *param,zend_bool openTest TSRMLS_DC){
+    //File handle.
+    zend_file_handle file_handle;
+    char real_path[MAXPATHLEN];
+    //Opcode.
+    zend_op_array *execute_array = NULL;
+
+    if(IS_ABSOLUTE_PATH(template_dir,template_dir_length)&&virtual_realpath(template_dir,real_path)){
+        TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(real_object->ce);
+        //Extract params.
+        template_parser_extract_param(param,openTest TSRMLS_CC);
+
+        file_handle.filename      = template_dir;
+        file_handle.free_filename = 0;
+        file_handle.type          = ZEND_HANDLE_FILENAME;
+        file_handle.opened_path    = NULL;
+        file_handle.handle.fp     = NULL;
+
+        execute_array = zend_compile_file(&file_handle,ZEND_INCLUDE TSRMLS_CC);
+
+        if(execute_array&&file_handle.handle.stream.handle){
+            int data = 1;
+            if(!file_handle.opened_path){
+                file_handle.opened_path = template_dir;
+            }
+            zend_hash_add(&EG(included_files),file_handle.opened_path,strlen(file_handle.opened_path)+1,(void*)(&data),sizeof(int),NULL);
+            zend_destroy_file_handle(&file_handle TSRMLS_CC);
+        }
+        if(execute_array){
+            TEMPLATE_PARSER_COMPILE_FILE_STORE_OPCODE_ENV();
+            EG(active_op_array) = execute_array;
+            if(!EG(active_symbol_table)){
+                zend_rebuild_symbol_table(TSRMLS_C);
+            }
+            zend_execute(execute_array TSRMLS_CC);
+            destroy_op_array(execute_array TSRMLS_CC);
+            efree(execute_array);
+            execute_array = NULL;
+            TEMPLATE_PARSER_COMPILE_FILE_RESTORE_OPCODE_ENV();
+        }
+
+        TEMPLATE_PARSER_COMPILE_FILE_RESTORE_ENV();
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+#endif
 
 PHP_FUNCTION(template_parser_parse){
     //Input params.
