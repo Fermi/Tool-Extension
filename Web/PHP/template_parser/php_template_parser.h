@@ -84,7 +84,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	if(php_output_get_contents(&str) == FAILURE){ \
 		return ; \
 	} \
-	content = zval_get_string(str); \
+	content = zval_get_string(&str); \
 	template_parser_parse_result_buffer *dest; \
 	total_length = ZSTR_LEN(content); \
 	dest = (template_parser_parse_result_buffer *)emalloc(sizeof(template_parser_parse_result_buffer)); \
