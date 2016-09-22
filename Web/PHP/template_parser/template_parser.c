@@ -205,50 +205,54 @@ PHP_FUNCTION(template_parser_parse){
 
 #elif (PHP_MAJOR_VERSION == 7)
 
-static int template_parser_extract_param(zend_object *real_object,zend_execute_data *call,zval *param,zend_bool openTest TSRMLS_DC){
+static zend_array* template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
+	//Below extract param into new symbol table and generate new symbol table for zend_execute_data use.
+	zval *value;
+	zend_string *key;
+	zend_array *symbol_table = NULL;
 
-	//real_object->ce
+	symbol_table = (zend_array*)emalloc(sizeof(zend_array));
 
-    HashPosition it_pos;
-    zval **param_value = NULL;
-    char *name;
-    ulong count;
-    uint length;
+	zend_hash_init(symbol_table, 8, NULL, ZVAL_PTR_DTOR, 0);
+	zend_hash_real_init(symbol_table, 0);
 
+	if(param && (Z_TYPE_P(param) == IS_ARRAY)){
+	    ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(param), key, value) {
+	    	if (EXPECTED(zend_hash_add_new(symbol_table, key, value))) {
+	    		Z_TRY_ADDREF_P(value);
+	    	}
+	    } ZEND_HASH_FOREACH_END();
+	}
 
-    if(!EG(active_symbol_table)){
-        return 1;
-    }
-
-    if(param && (Z_TYPE_P(param) == IS_ARRAY)){
-        for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(param),&it_pos);
-            zend_hash_get_current_data_ex(Z_ARRVAL_P(param),(void **)&param_value,&it_pos) == SUCCESS;
-            zend_hash_move_forward_ex(Z_ARRVAL_P(param),&it_pos)){
-            if(zend_hash_get_current_key_ex(Z_ARRVAL_P(param),&name,&length,&count,0,&it_pos) != HASH_KEY_IS_STRING){
-                continue;
-            }
-            //TODO: key name validation.
-            ZEND_SET_SYMBOL_WITH_LENGTH(EG(active_symbol_table),name,length,*param_value,Z_REFCOUNT_P(*param_value)+1,PZVAL_IS_REF(*param_value));
-        }
-        return 0;
-    }
-    return 1;
+	return symbol_table;
 }
 
-static int template_parser_execute(zend_execute_data *call,zend_op_array *execute_array){
+static int template_parser_execute(zend_object *real_object,zend_execute_data *call,zend_array *symbol_table,zend_op_array *execute_array){
 	zval ret;
 	ZVAL_UNDEF(&ret);
+	execute_array->scope = real_object->ce;
 
+	call = zend_vm_stack_push_call_frame(ZEND_CALL_NESTED_CODE
+#if PHP_VERSION_ID >= 70100
+		| ZEND_CALL_HAS_SYMBOL_TABLE
+#endif
+		,
+		(zend_function*)execute_array, 0, execute_array->scope, real_object);
+
+	call->symbol_table = symbol_table;
+
+	zend_init_execute_data(call, execute_array, &ret);
+
+	ZEND_ADD_CALL_FLAG(call, ZEND_CALL_TOP);
+	zend_execute_ex(call);
+	zend_vm_stack_free_call_frame(call);
 
 	destroy_op_array(execute_array TSRMLS_CC);
 	zend_array_destroy(symbol_table);
 	efree(execute_array);
 	execute_array = NULL;
-
-
+	symbol_table = NULL;
 	zval_ptr_dtor(&ret);
-
-
 }
 
 static int template_parser_compile_file(char *template_dir,int template_dir_length,zend_object *real_object,zval *param,zend_bool openTest TSRMLS_DC){
@@ -257,12 +261,13 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
     char real_path[MAXPATHLEN];
     //Opcode.
     zend_op_array *execute_array = NULL;
-    zend_execute_data *call = NULL;
+    zend_array *symbol_table = NULL;
+    zend_execute_data **call = NULL;
 
 
     if(IS_ABSOLUTE_PATH(template_dir,template_dir_length)&&virtual_realpath(template_dir,real_path)){
         //Extract params into symbol table and generate new symbol table.
-        template_parser_extract_param(real_object,call,param,openTest TSRMLS_CC);
+    	symbol_table = template_parser_extract_param(param,openTest TSRMLS_CC);
 
         file_handle.filename      = template_dir;
         file_handle.free_filename = 0;
@@ -282,7 +287,7 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
         }
         if(execute_array){
         	//Create necessary data and execute.
-        	template_parser_execute(call,execute_array);
+        	template_parser_execute(real_object,call,symbol_table,execute_array);
         }
 
         return 0;
@@ -318,36 +323,6 @@ PHP_FUNCTION(template_parser_parse){
 
     if(template_dir_length){
         template_parser_compile_file(template_dir,template_dir_length,real_object,param,openTest TSRMLS_CC);
-
-        /* Below is wrong zend_compile_string complemention.
-        TEMPLATE_PARSER_PARSE_STORE_ENV(real_object->ce);
-        //Extract params.
-        template_parser_extract_param(param TSRMLS_CC);
-        //Format template zval.
-        INIT_ZVAL(template_zval);
-        Z_TYPE(template_zval) = IS_STRING;
-        Z_STRVAL(template_zval) = emalloc(template_length+1);
-        Z_STRLEN(template_zval) = template_length;
-        snprintf(Z_STRVAL(template_zval),template_length+1,"%s",template);
-        //Format desc.
-        desc = zend_make_compiled_string_description("Template" TSRMLS_CC);
-        //Compile template.
-        execute_array = zend_compile_string(&template_zval,desc TSRMLS_CC);
-
-        if(execute_array){
-            TEMPLATE_PARSER_PARSE_STORE_OPCODE_ENV();
-            EG(active_op_array) = execute_array;
-            zend_execute(execute_array TSRMLS_CC);
-            destroy_op_array(execute_array TSRMLS_CC);
-
-            TEMPLATE_PARSER_PARSE_RESTORE_OPCODE_ENV();
-        }
-        efree(execute_array);
-        efree(desc);
-        zval_dtor(&template_zval);
-
-        TEMPLATE_PARSER_PARSE_RESTORE_ENV();
-        */
     }
 
     //Fetch result & return processed template string and give it back to PHP.
