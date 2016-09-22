@@ -184,8 +184,13 @@ PHP_FUNCTION(template_parser_parse){
     }
 
     //Fetch result & return processed template string and give it back to PHP.
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
     result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
+#elif ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))
+    TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
+    result = TEMPLATE_PARSER_G(result_buffer);
+#endif
 
     //Result memory leak solved.RETURN_* pass results to default return_value,it won't return until you write `return ;`.
     if(template_dir_length){
@@ -200,7 +205,10 @@ PHP_FUNCTION(template_parser_parse){
 
 #elif (PHP_MAJOR_VERSION == 7)
 
-static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_DC){
+static int template_parser_extract_param(zend_object *real_object,zend_execute_data *call,zval *param,zend_bool openTest TSRMLS_DC){
+
+	//real_object->ce
+
     HashPosition it_pos;
     zval **param_value = NULL;
     char *name;
@@ -227,17 +235,34 @@ static int template_parser_extract_param(zval *param,zend_bool openTest TSRMLS_D
     return 1;
 }
 
+static int template_parser_execute(zend_execute_data *call,zend_op_array *execute_array){
+	zval ret;
+	ZVAL_UNDEF(&ret);
+
+
+	destroy_op_array(execute_array TSRMLS_CC);
+	zend_array_destroy(symbol_table);
+	efree(execute_array);
+	execute_array = NULL;
+
+
+	zval_ptr_dtor(&ret);
+
+
+}
+
 static int template_parser_compile_file(char *template_dir,int template_dir_length,zend_object *real_object,zval *param,zend_bool openTest TSRMLS_DC){
     //File handle.
     zend_file_handle file_handle;
     char real_path[MAXPATHLEN];
     //Opcode.
     zend_op_array *execute_array = NULL;
+    zend_execute_data *call = NULL;
+
 
     if(IS_ABSOLUTE_PATH(template_dir,template_dir_length)&&virtual_realpath(template_dir,real_path)){
-        TEMPLATE_PARSER_COMPILE_FILE_STORE_ENV(real_object->ce);
-        //Extract params.
-        template_parser_extract_param(param,openTest TSRMLS_CC);
+        //Extract params into symbol table and generate new symbol table.
+        template_parser_extract_param(real_object,call,param,openTest TSRMLS_CC);
 
         file_handle.filename      = template_dir;
         file_handle.free_filename = 0;
@@ -248,27 +273,18 @@ static int template_parser_compile_file(char *template_dir,int template_dir_leng
         execute_array = zend_compile_file(&file_handle,ZEND_INCLUDE TSRMLS_CC);
 
         if(execute_array&&file_handle.handle.stream.handle){
-            int data = 1;
             if(!file_handle.opened_path){
                 file_handle.opened_path = template_dir;
             }
-            zend_hash_add(&EG(included_files),file_handle.opened_path,strlen(file_handle.opened_path)+1,(void*)(&data),sizeof(int),NULL);
+
+            zend_hash_add_empty_element(&EG(included_files),file_handle.opened_path);
             zend_destroy_file_handle(&file_handle TSRMLS_CC);
         }
         if(execute_array){
-            TEMPLATE_PARSER_COMPILE_FILE_STORE_OPCODE_ENV();
-            EG(active_op_array) = execute_array;
-            if(!EG(active_symbol_table)){
-                zend_rebuild_symbol_table(TSRMLS_C);
-            }
-            zend_execute(execute_array TSRMLS_CC);
-            destroy_op_array(execute_array TSRMLS_CC);
-            efree(execute_array);
-            execute_array = NULL;
-            TEMPLATE_PARSER_COMPILE_FILE_RESTORE_OPCODE_ENV();
+        	//Create necessary data and execute.
+        	template_parser_execute(call,execute_array);
         }
 
-        TEMPLATE_PARSER_COMPILE_FILE_RESTORE_ENV();
         return 0;
     } else {
         return 1;
@@ -294,9 +310,8 @@ PHP_FUNCTION(template_parser_parse){
     TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
-        //TODO: Find out why below line can't work.
-        //real_object = Z_OBJ_P(object_container);
-        real_object = zend_objects_get_address(object_container TSRMLS_CC);
+        //TODO: Find out whether below line can work.
+        real_object = Z_OBJ_P(object_container);
     } else {
         real_object = NULL;
     }
@@ -336,8 +351,8 @@ PHP_FUNCTION(template_parser_parse){
     }
 
     //Fetch result & return processed template string and give it back to PHP.
-    result = TEMPLATE_PARSER_G(result_buffer);
     TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
+    result = TEMPLATE_PARSER_G(result_buffer);
 
     //Result memory leak solved.RETURN_* pass results to default return_value,it won't return until you write `return ;`.
     if(template_dir_length){
