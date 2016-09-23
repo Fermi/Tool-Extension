@@ -34,7 +34,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC){
             }
         }
         memcpy(dest,str,length);
-        source->string[total_length] = '\0';
+        source->string[total_length] = "\0";
         TEMPLATE_PARSER_G(result_buffer) = source;
 
         return 0;

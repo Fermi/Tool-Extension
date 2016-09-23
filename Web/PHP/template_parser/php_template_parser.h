@@ -61,7 +61,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	dest->string = (char *)emalloc(total_length+1); \
 	dest->length = total_length; \
 	memcpy(dest->string,Z_STRVAL_P(str),total_length); \
-	dest->string[total_length] = '\0'; \
+	dest->string[total_length] = "\0"; \
 	TEMPLATE_PARSER_G(result_buffer) = dest; \
 	php_output_end(TSRMLS_C); \
 	zval_ptr_dtor(&str); \
@@ -91,7 +91,7 @@ static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
 	dest->string = (char *)emalloc(total_length+1); \
 	dest->length = total_length; \
 	memcpy(dest->string,ZSTR_VAL(content),total_length); \
-	dest->string[total_length] = '\0'; \
+	dest->string[total_length] = "\0"; \
 	TEMPLATE_PARSER_G(result_buffer) = dest; \
 	php_output_end(TSRMLS_C); \
 	zend_string_release(content); \
