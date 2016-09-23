@@ -28,13 +28,11 @@ ZEND_END_MODULE_GLOBALS(template_parser)
 
 #if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
 
-static int template_parser_output_writer(const char *str,uint length TSRMLS_DC);
-
-#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
+#define TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(FUNCTION) \
     template_parser_parse_result_buffer *stored_result_buffer = TEMPLATE_PARSER_G(result_buffer); \
     TEMPLATE_PARSER_G(result_buffer) = NULL; \
     int (*stored_output_func)(const char *str,uint length TSRMLS_DC) = OG(php_body_write); \
-    OG(php_body_write) = template_parser_output_writer;
+    OG(php_body_write) = FUNCTION;
 
 #define TEMPLATE_PARSER_PARSE_RESTORE_RESULT_BUFFER_AND_OUTPUT_HANDLER() \
     TEMPLATE_PARSER_G(result_buffer) = stored_result_buffer; \

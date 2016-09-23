@@ -139,7 +139,11 @@ PHP_FUNCTION(template_parser_parse){
         return ;
     }
     //Start redirect output.
+#if ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION < 4))
+    TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER(template_parser_output_writer);
+#elif ((PHP_MAJOR_VERSION == 5)&&(PHP_MINOR_VERSION >= 4))
     TEMPLATE_PARSER_PARSE_STORE_RESULT_BUFFER_AND_OUTPUT_HANDLER();
+#endif
     //Fetch real object in order to fetch it's scope.
     if(Z_TYPE_P(object_container) == IS_OBJECT){
         //TODO: Find out why below line can't work.
